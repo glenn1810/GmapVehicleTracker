@@ -1,29 +1,26 @@
 
 var lastVertex = 1;
-var step = 50; // 5; // metres
+var step = 10; // 5; // metres
 var eol = [];
 var polyLine = [];
 var poly2 = [];
 var timerHandle = [];
-
 var startLocation = [];
 var endLocation = [];
-
 var marker = [];
-
 var requests = [];
-
 var timer = 2000;
-
-var markerGroups = [];
-
-
+var busesRoutes = [];
 
 var directionDisplay = new Array();
 var directionsService = new google.maps.DirectionsService();
 var map;
 
-function initializeDummyGoogleMap() {
+function initializeGoogleMap(busesData) {
+  infoWindow = new google.maps.InfoWindow({
+    size: new google.maps.Size(150, 50)
+  });
+
   directionsDisplay = new google.maps.DirectionsRenderer({
     suppressMarkers: true
   });
@@ -35,85 +32,59 @@ function initializeDummyGoogleMap() {
 
   map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
   directionsDisplay.setMap(map);
+  busesRoutes = busesData;
   calcRoute(-1);
-  //calcRoute();
 }
 
 function calcRoute(routeIndex) {
-
-  var waypts = [];
-
-  stop = new google.maps.LatLng(14.553868401214913, 121.05211488902596)
-  waypts.push({
-    location: stop,
-    stopover: true
-  });
-  stop = new google.maps.LatLng(14.55241455705643, 121.04559175685475)
-  waypts.push({
-    location: stop,
-    stopover: true
-  });
-
-  
-
-  start = new google.maps.LatLng(14.547180638798155, 121.0545825212618);
-  end = new google.maps.LatLng(14.547159869034074, 121.0544752329037);
-
-  //createMarker(start);
-
-  //  startLocation = [];
-  //endLocation = [];
-  //polyLine = [];
-  //poly2 = [];
-  //timerHandle = [];
-
-
-  var request1 = {
-    origin: start,
-    destination: end,
-    waypoints: waypts,
-    optimizeWaypoints: true,
-    travelMode: google.maps.DirectionsTravelMode.DRIVING
-  };
-
-  var rendererOptions = {
-    suppressMarkers: true
-  };
-
   if (routeIndex == -1) {
-    requests.push(request1);
-    requests.push(request1);
-    requests.push(request1);
+      
+    const initialBus = busesRoutes[0];
+    createMarker(new google.maps.LatLng(initialBus.origin.lat, initialBus.origin.long));
+
+    for (var i = 0; i < busesRoutes.length; i++) {
+
+      var waypts = [];
+
+      for (var ii = 0; ii < busesRoutes[i].waypoints.length; ii++) {
+        stop = new google.maps.LatLng(busesRoutes[i].waypoints[ii].lat, busesRoutes[i].waypoints[ii].long)
+        waypts.push({
+          location: stop,
+          stopover: true
+        });
+      }
+
+      var request = {
+        origin: new google.maps.LatLng(busesRoutes[i].origin.lat, busesRoutes[i].origin.long),
+        destination: new google.maps.LatLng(busesRoutes[i].destination.lat, busesRoutes[i].destination.long),
+        waypoints: waypts,
+        optimizeWaypoints: true,
+        travelMode: google.maps.DirectionsTravelMode.DRIVING
+      };
+
+      requests.push(request);
+    }
 
     for (var ctr = 0; ctr < requests.length; ctr++) {
-      routeDeplayCallBack(requests[ctr], ctr, rendererOptions, directionsDisplay);
+      routeDeplayCallBack(requests[ctr], ctr, directionsDisplay);
     }
   }
   else {
-    routeDeplayCallBack(requests[routeIndex], routeIndex, rendererOptions, directionsDisplay);
+    routeDeplayCallBack(requests[routeIndex], routeIndex, directionsDisplay);
   }
- 
- // directionsService.route(request, makeRouteCallback(i, directionsDisplay[i]), rendererOptions);
-
-  //directionsService.route(request, function (response, status)
 }
 
-function routeDeplayCallBack(request, ctr, rendererOptions, directionsDisplay) {
+function routeDeplayCallBack(request, ctr, directionsDisplay) {
   if (ctr == 0) {
-    directionsService.route(request, makeRouteCallback(ctr, directionsDisplay[ctr]), rendererOptions);
+    directionsService.route(request, makeRouteCallback(ctr, directionsDisplay[ctr]));
   }
   else {
     timer += (ctr * 500);
-    console.log(timer);
-    setTimeout(function () { directionsService.route(request, makeRouteCallback(ctr, directionsDisplay[ctr]), rendererOptions); }, timer);
+    setTimeout(function () { directionsService.route(request, makeRouteCallback(ctr, directionsDisplay[ctr])); }, timer);
   }
 }
-function makeRouteCallback(routeNum, disp, rendererOptions) {
 
-  //  if (polyLine[routeNum] && (polyLine[routeNum].getMap() != null)) {
-  //  startAnimation(routeNum);
-  //  return;
-  //}
+function makeRouteCallback(routeNum, disp) {
 
   return function (response, status) {
 
@@ -132,7 +103,9 @@ function makeRouteCallback(routeNum, disp, rendererOptions) {
       // For each route, display summary information.
       var legs = response.routes[0].legs;
       // directionsrenderer renders the directions obtained previously by the directions service
-      disp = new google.maps.DirectionsRenderer(rendererOptions);
+      disp = new google.maps.DirectionsRenderer({
+        suppressMarkers: true
+      });
       disp.setMap(map);
       disp.setDirections(response);
 
@@ -140,12 +113,10 @@ function makeRouteCallback(routeNum, disp, rendererOptions) {
       for (i = 0; i < legs.length; i++) {
 
         if (i == 0) {
-          //vehicleViewModel.distance = legs[i].distance.text;
-          //vehicleViewModel.duration = legs[i].duration.text;
           startLocation[routeNum].latlng = legs[i].start_location;
           startLocation[routeNum].address = legs[i].start_address;
           marker[routeNum] = createBusMarker(legs[i].start_location,
-            '',
+            busesRoutes[routeNum],
             legs[i].start_address);
         }
         endLocation[routeNum].latlng = legs[i].end_location;
@@ -169,15 +140,37 @@ function makeRouteCallback(routeNum, disp, rendererOptions) {
 }
 
 function createMarker(latlng) {
-
-  var marker = new google.maps.Marker({
+  var originMarker = new google.maps.Marker({
     position: latlng,
     map: map
   });
 }
 
+function onSelectBusByCompany(index, isChecked, companies) {
+  var thisMarker = marker[index];
+
+  for (var ii = 0; ii < busesRoutes.length; ii++) {
+    var otherMarker = marker[ii];
+    if (ii == index) {
+      thisMarker.setVisible(isChecked);
+    }
+    else {
+      if (otherMarker.getVisible())
+        otherMarker.setVisible(true);
+      else
+        otherMarker.setVisible(false);
+    }
+  }
+}
 
 ////////////////animated bus ///////////
+
+function resetAndRecalculateRoute(index) {
+  timer = 2000;
+  eol[index] = 0;
+  calcRoute(index);
+}
+
 // Spawn a new polyLine every 20 vertices
 function updatePoly(i, d) {
   if (poly2[i].getPath().getLength() > 20) {
@@ -198,9 +191,7 @@ function updatePoly(i, d) {
 function animate(index, d) {
   if (d > eol[index]) {
     marker[index].setPosition(endLocation[index].latlng);
-    timer = 2000;
-    eol[index] = 0;
-    calcRoute(index);
+    resetAndRecalculateRoute(index);
     return;
   }
   var polyIndex = polyLine[index];
@@ -229,40 +220,29 @@ function startAnimation(index) {
   timerHandle[index] = setTimeout("animate(" + index + ",100)", 2000);  // Allow time for the initial map display
 }
 
-function createBusMarker(latlng, vehicleViewModel, html) {
+function createBusMarker(latlng, busInfo, html) {
 
-  //updateDistanceAndDurationInUI(vehicleViewModel);
-  //updateVehicleStatusInUI(vehicleViewModel, 'Transit');
+  var contentString = '<b>' + busInfo.companyName + ' - ' + busInfo.busName + '</b><br>' +
+    '<b>Revenue: </b>$' + busInfo.revenue + '<br>' + html;
 
-  //var contentString = '<b>' + vehicleViewModel.companyName + ' - ' + vehicleViewModel.vehicleName + '</b><br>' +
-  //  '<b>Revenue: </b>$' + vehicleViewModel.revenue + '<br>' +
-  //  '<b>Duration: </b>' + vehicleViewModel.duration + '<br>' +
-  //  '<b>Distance: </b>' + vehicleViewModel.distance + '<br>'
-  //  + html;
-
-  var contentString = "Sample A";
-
-
-  var marker = new google.maps.Marker({
+  var thisMarker = new google.maps.Marker({
     position: latlng,
     map: map,
     zIndex: 10,
-    title: "Sample A",
+    title: busInfo.companyName,
     label: {
-      text: "Sample A",
+      text: busInfo.busName,
       color: '#ffffff',
       fontSize: '8px',
       fontWeight: 'bold'
     }
   });
-  marker.myname = "Sample A";
+  thisMarker.myname = busInfo.busName;
 
-  markerGroups.push(marker);
-
-  google.maps.event.addListener(marker, 'click', function () {
+  google.maps.event.addListener(thisMarker, 'click', function () {
     infoWindow.setContent(contentString);
-    infoWindow.open(map, marker);
+    infoWindow.open(map, thisMarker);
   });
 
-  return marker;
+  return thisMarker;
 }

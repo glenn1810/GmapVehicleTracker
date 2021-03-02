@@ -22,11 +22,6 @@ export class SharedService {
   }
 
 
-  createNewVehicleRoute(request: googleMapRequest)  {
-    return this.http.post<any>(this.APIUrl + 'vehicleRouteTracker', request).pipe(catchError(this.handleError));
-  }
-
-
   handleError(error: HttpErrorResponse) {
     let errorMessage = 'Unknown error!';
     if (error.error instanceof ErrorEvent) {

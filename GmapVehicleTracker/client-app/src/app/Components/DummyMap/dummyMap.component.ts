@@ -10,7 +10,7 @@ declare function initializeDummyGoogleMap(): any;
 })
 export class DummayMapComponent implements OnInit {
   ngOnInit(): void {
-    console.log("Dummy Map");
+    //console.log("Dummy Map");
     initializeDummyGoogleMap();
 
   }

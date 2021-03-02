@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Vehicle, Company } from '../../Models';
 import { SharedService } from '../../SharedService/shared.service';
+import { BusRoutes } from '../../Models/busRoutes.model';
+import { latLong } from '../../Models/latlong.model';
 
-
-declare function initializeGoogleMap(): any;
-declare function onChangeRoute(vehicles: any): any;
-declare function onHighlightRouteByIndex(index: any, isChecked: any, companies: any): any;
+declare function initializeGoogleMap(busesRoutes: any): any;
+declare function onSelectBusByCompany(index: any, isChecked: any, companies: any): any;
 
 @Component({
   selector: 'app-map',
@@ -16,97 +16,103 @@ export class MapComponent implements OnInit {
 
   vehicles: Vehicle[] = [];
   companies: Company[] = [];
-  newVehicle: Vehicle = {id:0, companyName:'',destination:'',origin: '',name:'',revenue:378.23,status:'Ready'};
+  newVehicle: Vehicle = { id: 0, companyName: '', destination: '', origin: '', name: '', revenue: 378.23, status: 'Ready' };
+  busesRoutes: BusRoutes[] = [];
 
 
   constructor(private service: SharedService) { }
 
   ngOnInit(): void {
 
-    //var vehicle: Vehicle = {
-    //  id: 1,
-    //  companyName: ' A CORP',
-    //  name: 'Bus AA',
-    //  origin: 'BGC Corporate Center, 30th St, Taguig, 1634 Metro Manila',
-    //  destination: 'B. Morcilla St, Pateros, 1620 Metro Manila'
-    //};
+    this.getDummyData();
 
-    //this.vehicles.push(vehicle);
+    this.populateCompanyList(this.busesRoutes);
 
-    //var vehicle1: Vehicle = {
-    //  id: 2,
-    //  companyName: ' B CORP',
-    //  name: 'Bus BB',
-    //  origin: 'Fully Booked Ground Floor, B6, Bonifacio High Street Taguig Metro Manila Philippines',
-    //  destination: 'Fifth Avenue Place 5th Avenue corner 21st Dr Taguig 1630 Metro Manila'
-    //};
-   
-    //this.vehicles.push(vehicle1);
+    //this.getVehicleRouteList();
 
-    //var vehicle2: Vehicle = {
-    //  id: 3,
-    //  companyName: ' A CORP',
-    //  name: 'Bus AC',
-    //  origin: 'Ridgewood Towers Taguig Carlos P.Garcia Ave Taguig 1632 Metro Manila Philippines',
-    //  destination: 'Iglesia Ni Cristo - Lokal ng Pembo Milflores Makati Metro Manila Philippines'
-    //};
-
-
-    //this.vehicles.push(vehicle2);
-
-    this.getVehicleRouteList();
-
-
-    initializeGoogleMap();
+    initializeGoogleMap(this.busesRoutes);
   }
 
-  onchangeRoute(): void {
-    onChangeRoute(this.vehicles);
-  }
 
-  onCreateNewRoute(): void {
-    var model = this.newVehicle;
-
-    if (model.companyName && model.destination && model.origin
-      && model.revenue && model.status && model.name) {
-      if(model.destination === model.origin)
-        alert("Origin and Destination is the same.")
-      else
-        this.createNewVehicleRoute();
-    }
-    else {
-      alert("Some of the fields are empty.")
-    }
-  }
-
-  onhighlightRoute(company: Company): void {
-    onHighlightRouteByIndex(this.vehicles.findIndex(x => x.companyName == company.companyName), company.isChecked, this.companies);
+  onCompanySelected(company: Company): void {
+    onSelectBusByCompany(this.busesRoutes.findIndex(x => x.companyName == company.companyName), company.isChecked, this.companies);
   }
 
   private getVehicleRouteList() : void {
     this.service.getGmapVehicleRouteTrackerList().subscribe(data => {
       this.vehicles = data;
-      this.populateCompanyList(this.vehicles);
+      this.populateCompanyList(this.busesRoutes);
     });
   }
 
-  private createNewVehicleRoute(): void {
-    this.service.createNewVehicleRoute(this.newVehicle).subscribe(
-      x => {
-        location.reload();
-      });
-  }
-
-  private populateCompanyList(vehicles: Vehicle[]): void {
+  private populateCompanyList(vehicles: BusRoutes[]): void {
     var companies = vehicles.map(x => x.companyName).filter((v, i, a) => a.indexOf(v) === i)
 
     for (let value of companies) {
       const company: Company = {
         companyName: value,
-        isChecked: false
+        isChecked: true
       };
 
       this.companies.push(company);
     }
+  }
+
+  private getDummyData(): void {
+    let waypoints: latLong[] = [];
+
+    let originLatLong: latLong = {
+      lat: 14.547180638798155,
+      long: 121.0545825212618
+    };
+
+    let destinationLatLong: latLong = {
+      lat: 14.547159869034074,
+      long: 121.0544752329037
+    }
+
+    let waypoint1: latLong = {
+      lat: 14.553868401214913,
+      long: 121.05211488902596
+    }
+
+    let waypoint2: latLong = {
+      lat: 14.55241455705643,
+      long: 121.04559175685475
+    }
+
+    waypoints.push(waypoint1);
+    waypoints.push(waypoint2);
+
+    let busroute1: BusRoutes = {
+      busName: "Bus A",
+      companyName: "A Corp",
+      destination: destinationLatLong,
+      origin: originLatLong,
+      revenue: 500,
+      waypoints: waypoints
+    }
+
+    let busroute2: BusRoutes = {
+      busName: "Bus B",
+      companyName: "B Corp",
+      destination: destinationLatLong,
+      origin: originLatLong,
+      revenue: 700,
+      waypoints: waypoints
+    }
+
+    let busroute3: BusRoutes = {
+      busName: "Bus C",
+      companyName: "C Corp",
+      destination: destinationLatLong,
+      origin: originLatLong,
+      revenue: 1000,
+      waypoints: waypoints
+    }
+
+    this.busesRoutes.push(busroute1);
+    this.busesRoutes.push(busroute2);
+    this.busesRoutes.push(busroute3);
   }
 }

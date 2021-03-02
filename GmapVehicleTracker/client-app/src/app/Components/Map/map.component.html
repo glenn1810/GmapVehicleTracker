@@ -2,34 +2,7 @@
 
 <div class="container">
   <div class="row">
-    <div class="col-6">
-      <div class="card customize-card">
-        <div class="card-body" *ngFor="let value of vehicles">
-          <div class="container">
-            <div class="row">
-              <div class="col-12">
-                <div class="details-info">
-                  <p class="title">{{value.companyName}}</p>
-                  <p>{{value.name}}</p>
-                  <p>Origin - {{value.origin}}</p>
-                  <p>Destination - {{value.destination}}</p>
-                  <p class="text-bold" id="status-{{value.companyName}}-{{value.name}}">Status - {{value.status}}</p>
-                  <p class="text-bold" id="{{value.companyName}}-{{value.name}}">-- km | -- min</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="container">
-            <button type="button" class="btn btn-outline-primary" (click)="onchangeRoute()">View Location</button>
-            <div id="error-msg"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-6">
-
+    <div class="col-12">
       <div class="card customize-card">
         <div class="card-body">
           <div class="container">
@@ -38,7 +11,7 @@
                 <div class="checkbox-info">
                   <p class="title">Classify Buses by Company</p>
                   <div class="form-check" *ngFor="let value of companies">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="value.isChecked" (change)="onhighlightRoute(value)"
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="value.isChecked" (change)="onCompanySelected(value)"
                            id="{{value.companyName}}">
                     <label class="form-check-label" for="{{value.companyName}}">
                       {{value.companyName}}
@@ -57,36 +30,12 @@
             </div>
           </div>
         </div>
-        <div class="card-body">
-          <div class="container">
-            <div class="mb-3">
-              <input class="form-control form-control-sm" type="text" [(ngModel)]="newVehicle.companyName" placeholder="Specify Unique Company Name" aria-label="company name">
-            </div>
-            <div class="mb-3">
-              <input class="form-control form-control-sm" type="text" [(ngModel)]="newVehicle.name" placeholder="Specify Unique Bus Name" aria-label="bus name">
-            </div>
-            <div class="mb-3">
-              <input class="form-control form-control-sm" type="text" [(ngModel)]="newVehicle.revenue" placeholder="Specify Dummy Revenue" aria-label="dummy revenue">
-            </div>
-            <div class="mb-3">
-              <input class="form-control form-control-sm" type="text" [(ngModel)]="newVehicle.origin" placeholder="Specify Origin" aria-label="origin">
-            </div>
-            <div class="mb-3">
-              <input class="form-control form-control-sm" type="text" [(ngModel)]="newVehicle.destination" placeholder="Specify Destination" aria-label="destination">
-            </div>
-            <div class="mb-3">
-              <button type="button" class="btn btn-outline-primary" (click)="onCreateNewRoute()">Create new route</button><br />
-               <span class="font-8">Note: Validation for this form is limited since it's simple simulation for Gmap. Put a specific value in the fields to avoid error.</span>
-            </div>
-          </div>
-        </div>
       </div>
-
     </div>
   </div>
 </div>
 
-<section id="map_canvas" class="gmap-content" style="width: 100%; height:600px"></section>
+<section id="map-canvas" class="gmap-content" style="width: 100%; height:600px"></section>
 
 
 
