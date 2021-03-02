@@ -45,9 +45,9 @@ function calcRoute(routeIndex) {
     for (var i = 0; i < busesRoutes.length; i++) {
 
       var waypts = [];
-
-      for (var ii = 0; ii < busesRoutes[i].waypoints.length; ii++) {
-        stop = new google.maps.LatLng(busesRoutes[i].waypoints[ii].lat, busesRoutes[i].waypoints[ii].long)
+      var busWayPoints = busesRoutes[i].wayPoints;
+      for (var ii = 0; ii < busWayPoints.length; ii++) {
+        stop = new google.maps.LatLng(busesRoutes[i].wayPoints[ii].lat, busesRoutes[i].wayPoints[ii].long)
         waypts.push({
           location: stop,
           stopover: true

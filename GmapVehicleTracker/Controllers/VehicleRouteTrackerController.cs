@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GmapVehicleTracker.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class VehicleRouteTrackerController : ControllerBase
     {
@@ -28,11 +28,49 @@ namespace GmapVehicleTracker.Controllers
 
         // GET: api/<VehicleRouteTrackerController>
         [HttpGet]
-        public IEnumerable<VehicleRouteTracker> Get()
+        public ActionResult GetVehicleRoutes()
         {
             var vehicleRoutes = _repoWrapper.Gmap.GetAllVehicleRoute();
 
-            return vehicleRoutes;
+            var wayPoints = _repoWrapper.Gmap.GetWayPoints();
+
+            var busRoutes = new List<BusRoutes>();
+
+            foreach(var bus in vehicleRoutes)
+            {
+                var busWayPoints = new List<LatLong>();
+                foreach (var waypoint in wayPoints)
+                {
+                    busWayPoints.Add(new LatLong()
+                    {
+                        Lat =waypoint.WayPointLat,
+                        Long = waypoint.WayPointLong
+                });
+                }
+
+                var busRoute = new BusRoutes()
+                {
+                    BusName = bus.BusName,
+                    CompanyName = bus.CompanyName,
+                    Revenue = bus.Revenue,
+                    Destination = new LatLong()
+                    {
+                        Lat = bus.DestinationLat,
+                        Long = bus.DestinationLong
+                    },
+                    Origin = new LatLong()
+                    {
+                        Lat = bus.OriginLat,
+                        Long = bus.OriginLong
+                    },
+                    WayPoints = busWayPoints
+                };
+
+                busRoutes.Add(busRoute);
+            }
+            
+
+            return Ok(busRoutes);
         }
 
         // POST api/<VehicleRouteTrackerController>

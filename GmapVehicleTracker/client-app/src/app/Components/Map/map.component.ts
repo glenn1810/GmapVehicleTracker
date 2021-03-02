@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Vehicle, Company } from '../../Models';
+import { Company } from '../../Models';
 import { SharedService } from '../../SharedService/shared.service';
 import { BusRoutes } from '../../Models/busRoutes.model';
 import { latLong } from '../../Models/latlong.model';
@@ -14,9 +14,7 @@ declare function onSelectBusByCompany(index: any, isChecked: any, companies: any
 })
 export class MapComponent implements OnInit {
 
-  vehicles: Vehicle[] = [];
   companies: Company[] = [];
-  newVehicle: Vehicle = { id: 0, companyName: '', destination: '', origin: '', name: '', revenue: 378.23, status: 'Ready' };
   busesRoutes: BusRoutes[] = [];
 
 
@@ -24,13 +22,11 @@ export class MapComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.getDummyData();
+    //this.getDummyData();
 
-    this.populateCompanyList(this.busesRoutes);
+    //this.populateCompanyList(this.busesRoutes);
 
-    //this.getVehicleRouteList();
-
-    initializeGoogleMap(this.busesRoutes);
+    this.getBusRoutesList();
   }
 
 
@@ -38,9 +34,10 @@ export class MapComponent implements OnInit {
     onSelectBusByCompany(this.busesRoutes.findIndex(x => x.companyName == company.companyName), company.isChecked, this.companies);
   }
 
-  private getVehicleRouteList() : void {
-    this.service.getGmapVehicleRouteTrackerList().subscribe(data => {
-      this.vehicles = data;
+  private getBusRoutesList() : void {
+    this.service.getBusRoutesList().subscribe(data => {
+      this.busesRoutes = data;
+      initializeGoogleMap(data);
       this.populateCompanyList(this.busesRoutes);
     });
   }
@@ -90,7 +87,7 @@ export class MapComponent implements OnInit {
       destination: destinationLatLong,
       origin: originLatLong,
       revenue: 500,
-      waypoints: waypoints
+      wayPoints: waypoints
     }
 
     let busroute2: BusRoutes = {
@@ -99,7 +96,7 @@ export class MapComponent implements OnInit {
       destination: destinationLatLong,
       origin: originLatLong,
       revenue: 700,
-      waypoints: waypoints
+      wayPoints: waypoints
     }
 
     let busroute3: BusRoutes = {
@@ -108,7 +105,7 @@ export class MapComponent implements OnInit {
       destination: destinationLatLong,
       origin: originLatLong,
       revenue: 1000,
-      waypoints: waypoints
+      wayPoints: waypoints
     }
 
     this.busesRoutes.push(busroute1);

@@ -17,8 +17,8 @@ export class SharedService {
 
   constructor(private http: HttpClient) { }
 
-  getGmapVehicleRouteTrackerList(): Observable<any[]> {
-    return this.http.get<any>(this.APIUrl + 'vehicleRouteTracker').pipe(catchError(this.handleError));
+  getBusRoutesList(): Observable<any[]> {
+    return this.http.get<any>(this.APIUrl + 'vehicleRouteTracker/GetVehicleRoutes').pipe(catchError(this.handleError));
   }
 
 

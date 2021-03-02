@@ -12,5 +12,7 @@ namespace GmapVehicleTracker.Data.Contract
 
         void DeleteRouteTracker(VehicleRouteTracker camp);
         IEnumerable<VehicleRouteTracker> GetAllVehicleRoute();
+
+        IEnumerable<WayPoints> GetWayPoints();
     }
 }

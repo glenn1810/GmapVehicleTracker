@@ -3,14 +3,16 @@ using GmapVehicleTracker.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace GmapVehicleTracker.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210302122810_initialUpdate")]
+    partial class initialUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,24 +53,6 @@ namespace GmapVehicleTracker.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("VehicleRouteTracker");
-                });
-
-            modelBuilder.Entity("GmapVehicleTracker.Model.WayPoints", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<decimal>("WayPointLat")
-                        .HasColumnType("Decimal(9,6)");
-
-                    b.Property<decimal>("WayPointLong")
-                        .HasColumnType("Decimal(9,6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WayPoints");
                 });
 #pragma warning restore 612, 618
         }

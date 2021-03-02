@@ -33,5 +33,12 @@ namespace GmapVehicleTracker.Data
 
             return query;
         }
+
+        public IEnumerable<WayPoints> GetWayPoints()
+        {
+            var query = _context.WayPoints.ToList();
+
+            return query;
+        }
     }
 }

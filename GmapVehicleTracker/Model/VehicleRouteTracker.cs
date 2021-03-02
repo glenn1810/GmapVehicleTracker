@@ -18,16 +18,20 @@ namespace GmapVehicleTracker.Model
         public string CompanyName { get; set; }
         [Column(TypeName = "varchar(500)")]
         [Required]
-        public string Name { get; set; }
-        [Column(TypeName = "varchar(max)")]
+        public string BusName { get; set; }
+        [Column(TypeName = "Decimal(9, 6)")]
         [Required]
-        public string Origin { get; set; }
-        [Column(TypeName = "varchar(max)")]
+        public decimal OriginLat { get; set; }
+        [Column(TypeName = "Decimal(9, 6)")]
         [Required]
-        public string Destination { get; set; }
-        [Column(TypeName = "varchar(100)")]
+        public decimal OriginLong { get; set; }
+
+        [Column(TypeName = "Decimal(9, 6)")]
         [Required]
-        public string Status { get; set; }
+        public decimal DestinationLat { get; set; }
+        [Column(TypeName = "Decimal(9, 6)")]
+        [Required]
+        public decimal DestinationLong { get; set; }
 
         [Column(TypeName = "decimal(9, 2)")]
         [Required]

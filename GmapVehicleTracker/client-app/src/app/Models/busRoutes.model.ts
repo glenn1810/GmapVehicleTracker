@@ -5,6 +5,6 @@ export class BusRoutes {
   busName: string;
   origin: latLong;
   destination: latLong;
-  waypoints: latLong[];
+  wayPoints: latLong[];
   revenue: number;
 }

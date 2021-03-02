@@ -20,5 +20,7 @@ namespace GmapVehicleTracker.Data
         }
 
         public DbSet<VehicleRouteTracker> VehicleRouteTrackers { get; set; }
+
+        public DbSet<WayPoints> WayPoints { get; set; }
     }
 }
