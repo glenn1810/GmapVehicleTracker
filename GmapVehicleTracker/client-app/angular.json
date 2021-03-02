@@ -57,6 +57,7 @@
             ],
             "scripts": [
               "src/googleMap.shared.service.js",
+              "src/googleMap.resources.service.js",
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js"
             ]
@@ -126,6 +127,7 @@
             ],
             "scripts": [
               "src/googleMap.shared.service.js",
+              "src/googleMap.resources.service.js",
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js"
             ]
