@@ -18,6 +18,8 @@ var step = 5; // 5; // metres
 var eol = [];
 
 var VehiclesRoutesList = [];
+var timer = 2000;
+var markerGroups = [];
 
 
 var vehicleViewModel = {
@@ -30,7 +32,7 @@ var vehicleViewModel = {
 
 window.initializeGoogleMap = initializeGoogleMap;
 window.setRoutes = onChangeRoute;
-window.highlight = onHighlightRouteByCompany;
+window.highlight = onHighlightRouteByIndex;
 
 
 function initializeGoogleMap() {
@@ -64,6 +66,7 @@ function createMarker(latlng, vehicleViewModel, html) {
     '<b>Distance: </b>' + vehicleViewModel.distance + '<br>'
     + html;
 
+
   var marker = new google.maps.Marker({
     position: latlng,
     map: map,
@@ -77,6 +80,8 @@ function createMarker(latlng, vehicleViewModel, html) {
     }
   });
   marker.myname = vehicleViewModel.vehicleName;
+
+  markerGroups.push(marker);
 
   google.maps.event.addListener(marker, 'click', function () {
     infoWindow.setContent(contentString);
@@ -103,16 +108,38 @@ function toggleError(msg) {
   document.getElementById('error-msg').innerText = msg;
 }
 
-function onHighlightRouteByCompany(company) {
-  var elements = document.querySelectorAll('div[aria-label="' + company.companyName + '"]');
-  var border = '0';
+function onHighlightRouteByIndex(index, isChecked, companies) {
+  var marker = markerGroups[index];
+  var markerStatus = marker.getVisible();
 
-  if (company.isChecked)
-    border = '2px solid black';
 
-  for (i = 0; i < elements.length; i++) {
-    elements[i].style.border = border;
+  for (var ii = 0; ii < VehiclesRoutesList.length; ii++) {
+    var otherMarker = markerGroups[ii];
+
+    var lengthOfAllTrue = companies.filter(x => x.isChecked == false).length;
+
+    if (ii == index) {
+      if (lengthOfAllTrue == VehiclesRoutesList.length)
+        marker.setVisible(true);
+      else
+        marker.setVisible(isChecked);
+    }
+    else {
+
+      if (lengthOfAllTrue == VehiclesRoutesList.length) {
+        otherMarker.setVisible(true);
+      }
+      else if (companies[ii].isChecked)
+        otherMarker.setVisible(true);
+      else
+        otherMarker.setVisible(false);
+    }
   }
+  //if (!marker.getVisible()) {
+  //  marker.setVisible(true);
+  //} else {
+  //  marker.setVisible(false);
+  //}
 }
 
 function onChangeRoute(vehicles) {
@@ -166,8 +193,18 @@ function onChangeRoute(vehicles) {
       destination: endLoc[i],
       travelMode: travelMode
     };
+    setDirectionRoute(request, i, rendererOptions, directionsDisplay, directionsService);
+  }
+}
 
-    directionsService.route(request, makeRouteCallback(i, directionsDisplay[i]), rendererOptions);
+
+function setDirectionRoute(request, i, rendererOptions, directionsDisplay, service){
+  if (i == 0) {
+    service.route(request, makeRouteCallback(i, directionsDisplay[i]), rendererOptions);
+  }
+  else {
+    timer += (i * 600);
+    setTimeout(function () { service.route(request, makeRouteCallback(i, directionsDisplay[i]), rendererOptions); }, timer);
   }
 }
 
@@ -289,7 +326,8 @@ function startAnimation(index) {
     strokeColor: "#FFFF00",
     strokeWeight: 3
   });
-  timerHandle[index] = setTimeout("animate(" + index + ",20)", 2000);  // Allow time for the initial map display
+
+  timerHandle[index] = setTimeout("animate(" + index + ",100)", 2000);  // Allow time for the initial map display
 }
 
 

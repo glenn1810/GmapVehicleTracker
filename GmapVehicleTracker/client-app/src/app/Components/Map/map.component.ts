@@ -5,7 +5,7 @@ import { SharedService } from '../../SharedService/shared.service';
 
 declare function initializeGoogleMap(): any;
 declare function onChangeRoute(vehicles: any): any;
-declare function onHighlightRouteByCompany(company: any): any;
+declare function onHighlightRouteByIndex(index: any, isChecked: any, companies: any): any;
 
 @Component({
   selector: 'app-map',
@@ -80,8 +80,7 @@ export class MapComponent implements OnInit {
   }
 
   onhighlightRoute(company: Company): void {
-    console.log(company.companyName + "-" + company.isChecked);
-    onHighlightRouteByCompany(company);
+    onHighlightRouteByIndex(this.vehicles.findIndex(x => x.companyName == company.companyName), company.isChecked, this.companies);
   }
 
   private getVehicleRouteList() : void {
