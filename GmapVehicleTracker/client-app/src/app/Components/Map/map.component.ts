@@ -6,6 +6,7 @@ import { latLong } from '../../Models/latlong.model';
 
 declare function initializeGoogleMap(busesRoutes: any): any;
 declare function onSelectBusByCompany(index: any, isChecked: any, companies: any): any;
+declare var $: any;
 
 @Component({
   selector: 'app-map',
@@ -24,35 +25,18 @@ export class MapComponent implements OnInit {
 
     //this.getDummyData();
 
-    //this.populateCompanyList(this.busesRoutes);
-
     this.getBusRoutesList();
   }
 
-
-  onCompanySelected(company: Company): void {
-    onSelectBusByCompany(this.busesRoutes.findIndex(x => x.companyName == company.companyName), company.isChecked, this.companies);
+  onCloseWindow(): void {
+    $('#companyAnalyticId').modal('hide'); 
   }
 
   private getBusRoutesList() : void {
     this.service.getBusRoutesList().subscribe(data => {
       this.busesRoutes = data;
       initializeGoogleMap(data);
-      this.populateCompanyList(this.busesRoutes);
     });
-  }
-
-  private populateCompanyList(vehicles: BusRoutes[]): void {
-    var companies = vehicles.map(x => x.companyName).filter((v, i, a) => a.indexOf(v) === i)
-
-    for (let value of companies) {
-      const company: Company = {
-        companyName: value,
-        isChecked: true
-      };
-
-      this.companies.push(company);
-    }
   }
 
   private getDummyData(): void {

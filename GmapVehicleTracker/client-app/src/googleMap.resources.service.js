@@ -15,8 +15,19 @@ var busesRoutes = [];
 var directionDisplay = new Array();
 var directionsService = new google.maps.DirectionsService();
 var map;
+var markerCenter;
+var circle;
+var latLngCMarker;
+var bounds;
+var totalBusElement;
+var drawChart;
+var totalBusesInsideCircle = [];
+
+
+
 
 function initializeGoogleMap(busesData) {
+
   infoWindow = new google.maps.InfoWindow({
     size: new google.maps.Size(150, 50)
   });
@@ -33,7 +44,209 @@ function initializeGoogleMap(busesData) {
   map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
   directionsDisplay.setMap(map);
   busesRoutes = busesData;
+  initializeCircle();
+  initializeAnalyticChart();
+  initializeCheckboxFilter();
+  initializeBusCountLabel();
   calcRoute(-1);
+}
+
+function initializeCircle() {
+  const initialRoute = busesRoutes[0];
+  const initialWayPoint = initialRoute.wayPoints[0];
+
+  latLngCMarker = new google.maps.LatLng(initialWayPoint.lat, initialWayPoint.long);
+
+  markerCenter = new google.maps.Marker({
+    position: latLngCMarker,
+    title: 'Center marker',
+    map: map,
+    draggable: true
+  })
+
+  circle = new google.maps.Circle({
+    map: map,
+    clickable: false,
+    // metres
+    radius: 500,
+    fillColor: '#fff',
+    fillOpacity: .6,
+    strokeColor: '#313131',
+    strokeOpacity: .4,
+    strokeWeight: .8
+  });
+  // attach circle to marker
+  circle.bindTo('center', markerCenter, 'position');
+
+  bounds = circle.getBounds();
+
+
+  const infoCenter = new google.maps.InfoWindow({
+    content: '<span class="infowin">Center Marker (draggable)</span>'
+  })
+
+  google.maps.event.addListener(markerCenter, 'click', function () {
+    infoCenter.open(map, markerCenter);
+  });
+
+  google.maps.event.addListener(markerCenter, 'drag', function () {
+    infoCenter.close();
+  });
+
+  google.maps.event.addListener(markerCenter, 'dragend', function () {
+    latLngCenter = new google.maps.LatLng(markerCenter.position.lat(), markerCenter.position.lng());
+    bounds = circle.getBounds();
+  });
+}
+
+function initializeBusCountLabel() {
+  const labelContainer = document.createElement("div");
+  var spanText = createBusCountLabel(labelContainer, map);
+  map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(labelContainer);
+
+  totalBusElement = spanText;
+}
+
+function initializeCheckboxFilter() {
+  const checkboxContainer = document.createElement("div");
+  createCheckboxControl(checkboxContainer, map);
+  map.controls[google.maps.ControlPosition.LEFT_CENTER].push(checkboxContainer);
+}
+
+
+function initializeAnalyticChart() {
+  const chartContainer = document.createElement("div");
+  createAnalyticChartButton(chartContainer, map);
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(chartContainer);
+
+  google.load("visualization", "1", { packages: ["corechart"] });
+  google.setOnLoadCallback(drawCompanyChart);
+}
+
+function createBusCountLabel(labelContainer, map) {
+  const labelDiv = document.createElement("div");
+  labelDiv.style.backgroundColor = "#fff";
+  labelDiv.style.border = "2px solid #fff";
+  labelDiv.style.borderRadius = "3px";
+  labelDiv.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+  labelDiv.style.cursor = "pointer";
+  labelDiv.style.marginBottom = "22px";
+  labelDiv.style.textAlign = "center";
+  labelContainer.appendChild(labelDiv);
+
+  const labelText = document.createElement("label");
+  labelText.style.color = "rgb(25,25,25)";
+  labelText.style.fontFamily = "Roboto,Arial,sans-serif";
+  labelText.style.fontSize = "16px";
+  labelText.style.lineHeight = "38px";
+  labelText.style.paddingLeft = "5px";
+  labelText.style.paddingRight = "5px";
+  labelText.style.fontWeight = "bold";
+  labelText.innerHTML = "Total Buses: ";
+  labelDiv.appendChild(labelText);
+
+  const spanText = document.createElement("span");
+  spanText.style.color = "rgb(25,25,25)";
+  spanText.style.fontFamily = "Roboto,Arial,sans-serif";
+  spanText.style.fontSize = "16px";
+  spanText.style.lineHeight = "38px";
+  spanText.style.fontWeight = "bold";
+  spanText.id = "totBus";
+  spanText.innerHTML = 0;
+  labelText.appendChild(spanText);
+
+  return spanText;
+}
+
+function createCheckboxControl(checkboxContainer, map) {
+  checkboxContainer.style.paddingTop = "10px";
+  checkboxContainer.style.paddingLeft = "10px";
+  for (var index = 0; index < busesRoutes.length; index++) {
+    const checkboxDiv = document.createElement("div");
+    checkboxDiv.style.backgroundColor = "#fff";
+    checkboxDiv.style.border = "2px solid #fff";
+    checkboxDiv.style.borderRadius = "3px";
+    checkboxDiv.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+    checkboxDiv.style.cursor = "pointer";
+    checkboxDiv.style.marginBottom = "22px";
+    checkboxDiv.style.textAlign = "center";
+    checkboxContainer.appendChild(checkboxDiv);
+
+    const checkboxControl = document.createElement("input");
+    checkboxControl.id = busesRoutes[index].companyName;
+    checkboxControl.type = "checkbox";
+    checkboxControl.checked = true;
+    checkboxDiv.appendChild(checkboxControl);
+
+    const checkboxText = document.createElement("label");
+    checkboxText.style.color = "rgb(25,25,25)";
+    checkboxText.style.fontFamily = "Roboto,Arial,sans-serif";
+    checkboxText.style.fontSize = "16px";
+    checkboxText.style.lineHeight = "38px";
+    checkboxText.style.paddingLeft = "5px";
+    checkboxText.style.paddingRight = "5px";
+    checkboxText.style.fontWeight = "bold";
+    checkboxText.innerHTML = busesRoutes[index].companyName;
+    checkboxDiv.appendChild(checkboxText);
+
+    checkboxControl.addEventListener("click", () => {
+      const busRouteIndex = busesRoutes.findIndex(x => x.companyName == checkboxControl.id)
+      onSelectBusByCompany(busRouteIndex, checkboxControl.checked);
+    });
+  }  
+}
+
+function createAnalyticChartButton(chartContainer, map) {
+  const showChartButton = document.createElement("div");
+  showChartButton.style.backgroundColor = "#fff";
+  showChartButton.style.border = "2px solid #fff";
+  showChartButton.style.borderRadius = "3px";
+  showChartButton.style.boxShadow = "0 2px 6px rgba(0,0,0,.3)";
+  showChartButton.style.cursor = "pointer";
+  showChartButton.style.marginBottom = "22px";
+  showChartButton.style.textAlign = "center";
+  showChartButton.title = "Click to show Company Analytics.";
+  chartContainer.appendChild(showChartButton);
+  // Set CSS for the control interior.
+  const chartButtonText = document.createElement("a");
+  chartButtonText.style.color = "rgb(25,25,25)";
+  chartButtonText.style.fontFamily = "Roboto,Arial,sans-serif";
+  chartButtonText.style.fontSize = "16px";
+  chartButtonText.style.lineHeight = "38px";
+  chartButtonText.style.paddingLeft = "5px";
+  chartButtonText.style.paddingRight = "5px";
+  chartButtonText.style.fontWeight = "bold";
+  chartButtonText.innerHTML = "View Company Analytics";
+  chartButtonText.href = "#companyAnalyticId";
+  showChartButton.appendChild(chartButtonText);
+  // Setup the click event listeners: simply set the map to Chicago.
+  showChartButton.addEventListener("click", () => {
+    const modal = document.getElementById('companyAnalyticId');
+    modal.setAttribute('style', 'display: block');
+  });
+}
+
+function drawCompanyChart() {
+  var data = new google.visualization.arrayToDataTable(loadAnalyticData(busesRoutes));
+  var options = {
+    'title': 'Company Revenue Analytics',
+    'width': 500,
+    'height': 500
+  };
+  var chart = new google.visualization.PieChart(document.getElementById('companyAnalyticPieChart'));
+  chart.draw(data, options);
+
+  const modal = document.getElementById('companyAnalyticId');
+  modal.setAttribute('style', 'display: block');
+}
+
+function loadAnalyticData(data) {
+  var arrValues = [['Company name', 'Revenue']];
+  for (var index = 0; index < data.length; index++) {
+    arrValues.push([data[index].companyName, data[index].revenue]);
+  }
+
+  return arrValues;
 }
 
 function calcRoute(routeIndex) {
@@ -146,7 +359,7 @@ function createMarker(latlng) {
   });
 }
 
-function onSelectBusByCompany(index, isChecked, companies) {
+function onSelectBusByCompany(index, isChecked) {
   var thisMarker = marker[index];
 
   for (var ii = 0; ii < busesRoutes.length; ii++) {
@@ -200,6 +413,7 @@ function animate(index, d) {
     return;
 
   var p = polyLine[index].GetPointAtDistance(d);
+  validateIfObjectExistInCircle(index, p);
   marker[index].setPosition(p);
   updatePoly(index, d);
   timerHandle[index] = setTimeout("animate(" + index + "," + (d + step) + ")", 100);
@@ -245,4 +459,30 @@ function createBusMarker(latlng, busInfo, html) {
   });
 
   return thisMarker;
+}
+
+
+function validateIfObjectExistInCircle(busIndex, p) {
+  var lat = p.lat();
+  var long = p.lng();
+  const isExist = totalBusesInsideCircle.includes(busIndex);
+  const latlang = new google.maps.LatLng(lat, long);
+  if (bounds.contains(latlang)) {
+
+    if (!isExist) {
+      totalBusesInsideCircle.push(busIndex);
+    }
+  }
+  else {
+    if (isExist) {
+      if (totalBusesInsideCircle.length > 0) {
+        const itemIndex = totalBusesInsideCircle.indexOf(busIndex);
+        if (itemIndex > -1) {
+          totalBusesInsideCircle.splice(itemIndex, 1);
+        }
+      }
+    }
+  }
+
+  totalBusElement.innerText = totalBusesInsideCircle.length;
 }
