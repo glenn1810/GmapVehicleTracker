@@ -365,13 +365,16 @@ function onSelectBusByCompany(index, isChecked) {
   for (var ii = 0; ii < busesRoutes.length; ii++) {
     var otherMarker = marker[ii];
     if (ii == index) {
-      thisMarker.setVisible(isChecked);
+      if (thisMarker)
+        thisMarker.setVisible(isChecked);
     }
     else {
-      if (otherMarker.getVisible())
-        otherMarker.setVisible(true);
-      else
-        otherMarker.setVisible(false);
+      if (otherMarker) {
+        if (otherMarker.getVisible())
+          otherMarker.setVisible(true);
+        else
+          otherMarker.setVisible(false);
+      }
     }
   }
 }
